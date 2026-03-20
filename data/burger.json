@@ -1,0 +1,9 @@
+{
+  "id": "burger",
+  "title": "3D Burger Builder",
+  "description": "11종 3D 재료를 물리 엔진으로 쌓아올리는 인터랙티브 버거 빌더",
+  "url": "https://burgerkinn.137-5.com",
+  "stack": ["React", "Three.js", "R3F", "Rapier Physics"],
+  "author": "Tae Jae Han",
+  "code": "projects/burger/main.js"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "zealot",
+  "title": "StarCraft Zealot",
+  "description": "스크롤 기반 3D 내러티브 — 프로토스 질럿의 워프인부터 전투까지",
+  "url": "https://zealot.137-5.com",
+  "stack": ["React", "Three.js", "GSAP", "ScrollTrigger", "Custom Shader"],
+  "author": "Tae Jae Han",
+  "code": "projects/zealot/main.js"
+}

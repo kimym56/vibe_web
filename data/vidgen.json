@@ -1,0 +1,9 @@
+{
+  "id": "vidgen",
+  "title": "AI Video Generator",
+  "description": "대본 분석부터 영상 합성까지, 멀티엔진 AI 비디오 자동 생성 도구",
+  "url": "https://vidgen.137-5.com",
+  "stack": ["React", "Express", "Claude AI", "Vidu", "Veo", "FFmpeg", "Supertone TTS"],
+  "author": "Tae Jae Han",
+  "code": "projects/vidgen/main.js"
+}

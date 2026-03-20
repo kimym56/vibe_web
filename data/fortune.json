@@ -1,0 +1,9 @@
+{
+  "id": "fortune",
+  "title": "2026 운세보기",
+  "description": "12간지 3D 동물 모델과 오행 시스템 기반 인터랙티브 운세 앱",
+  "url": "https://fortune.137-5.com",
+  "stack": ["React", "Three.js", "React Router", "i18n"],
+  "author": "Tae Jae Han",
+  "code": "projects/fortune/main.js"
+}

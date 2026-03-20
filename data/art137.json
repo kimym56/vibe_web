@@ -1,0 +1,9 @@
+{
+  "id": "art137",
+  "title": "Art 137.5",
+  "description": "자연어로 제너레이티브 아트를 만드는 AI 아트 플레이그라운드 (24+ 모듈)",
+  "url": "https://art.137-5.com",
+  "stack": ["Canvas", "p5.js", "Claude API", "Node.js", "Perlin Noise", "Voronoi"],
+  "author": "Tae Jae Han",
+  "code": "projects/art137/main.js"
+}

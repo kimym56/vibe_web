@@ -1,16 +1,14 @@
 {
-  "name": "vibebattle",
+  "name": "vibe-canvas",
   "version": "1.0.0",
-  "description": "실시간 바이브코딩 배틀 플랫폼",
+  "description": "JSON + Canvas 기반 크리에이티브 포트폴리오",
   "type": "module",
   "scripts": {
-    "dev": "node server/index.js",
+    "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^4.7.2",
+  "devDependencies": {
     "vite": "^5.0.0"
   }
 }

@@ -1,0 +1,9 @@
+{
+  "id": "mugic",
+  "title": "Mugic Auto Generator",
+  "description": "클릭 한 번으로 200곡 일괄 생성하는 AI 음악 자동 생성 & 관리 플랫폼",
+  "url": "https://auto.137-5.com",
+  "stack": ["React", "Express", "BullMQ", "Redis", "PostgreSQL", "Suno API", "GPT-4"],
+  "author": "Tae Jae Han",
+  "code": "projects/mugic/main.js"
+}
