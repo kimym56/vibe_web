@@ -1,0 +1,9 @@
+{
+  "id": "cyberprophet",
+  "title": "PageMint",
+  "description": "AI 에이전트 팀이 상품 상세페이지를 자동 제작하는 플랫폼",
+  "url": "https://mint.surf",
+  "stack": ["Flutter", ".NET 10", "Node.js", "PostgreSQL", "OpenCode", "Gemini"],
+  "author": "cyberprophet",
+  "code": "projects/cyberprophet/main.js"
+}
