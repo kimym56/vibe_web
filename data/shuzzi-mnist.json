@@ -1,9 +1,0 @@
-{
-  "id": "shuzzi-mnist",
-  "title": "MNIST Clustering",
-  "description": "1000 data points converging into digit clusters through simulated training epochs — 3D perspective projection with neon trails",
-  "url": "https://neural-space-tan.vercel.app",
-  "stack": ["Canvas 2D", "Creative Coding"],
-  "author": "shuzzi",
-  "code": "projects/shuzzi-mnist/main.js"
-}

@@ -9,20 +9,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: 변경된 파일 확인
         run: |
           echo "=== 변경된 파일 목록 ==="
-          gh pr diff ${{ github.event.pull_request.number }} --name-only
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git diff --name-only origin/main...HEAD
 
       - name: 잘못된 위치 검사
         run: |
+          CHANGED=$(git diff --name-only origin/main...HEAD)
           ERRORS=0
 
           # 루트 data/ 또는 projects/에 파일을 넣었는지 검사
-          BAD_FILES=$(gh pr diff ${{ github.event.pull_request.number }} --name-only | grep -E "^(data|projects)/[^/]" || true)
+          BAD_FILES=$(echo "$CHANGED" | grep -E "^(data|projects)/" || true)
           if [ -n "$BAD_FILES" ]; then
             echo "::error::파일이 잘못된 위치에 있습니다. public/ 폴더 안에 넣어야 합니다."
             echo ""
@@ -37,7 +38,7 @@ jobs:
           fi
 
           # 수정하면 안 되는 파일 검사
-          PROTECTED=$(gh pr diff ${{ github.event.pull_request.number }} --name-only | grep -E "^(index\.html|js/|vite\.config\.js)" || true)
+          PROTECTED=$(echo "$CHANGED" | grep -E "^(index\.html|js/|vite\.config\.js|CLAUDE\.md)" || true)
           if [ -n "$PROTECTED" ]; then
             echo "::error::수정 금지된 파일이 변경되었습니다: $PROTECTED"
             ERRORS=1
@@ -49,15 +50,58 @@ jobs:
             exit 1
           fi
 
-          echo "검증 통과!"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "위치 검증 통과!"
 
-      - name: config.json에 ID 추가 확인
+      - name: 필수 파일 검사
         run: |
-          CONFIG_CHANGED=$(gh pr diff ${{ github.event.pull_request.number }} --name-only | grep "^public/data/config.json$" || true)
+          CHANGED=$(git diff --name-only origin/main...HEAD)
+          ERRORS=0
+
+          # config.json 변경 확인
+          CONFIG_CHANGED=$(echo "$CHANGED" | grep "^public/data/config.json$" || true)
           if [ -z "$CONFIG_CHANGED" ]; then
-            echo "::warning::public/data/config.json이 변경되지 않았습니다. 본인 ID를 추가했는지 확인하세요."
+            echo "::error::public/data/config.json에 본인 ID를 추가해야 합니다."
+            ERRORS=1
           fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # 추가된 ID 추출 (config.json diff에서)
+          if [ -n "$CONFIG_CHANGED" ]; then
+            NEW_IDS=$(git diff origin/main...HEAD -- public/data/config.json | grep "^+" | grep -v "^+++" | grep -oE '"[a-z0-9-]+"' | tr -d '"' | while read id; do
+              git diff origin/main...HEAD -- public/data/config.json | grep "^-" | grep -v "^---" | grep -q "\"$id\"" || echo "$id"
+            done)
+
+            for ID in $NEW_IDS; do
+              # JSON 파일 존재 확인
+              if [ ! -f "public/data/${ID}.json" ]; then
+                echo "::error::public/data/${ID}.json 파일이 없습니다."
+                ERRORS=1
+              fi
+
+              # main.js 파일 존재 확인
+              if [ ! -f "public/projects/${ID}/main.js" ]; then
+                echo "::error::public/projects/${ID}/main.js 파일이 없습니다."
+                ERRORS=1
+              fi
+            done
+          fi
+
+          # public/projects 아래 main.js가 추가됐는데 대응하는 JSON이 없는 경우
+          NEW_MAIN=$(echo "$CHANGED" | grep -oE "^public/projects/([a-z0-9-]+)/main\.js$" || true)
+          for MAIN_PATH in $NEW_MAIN; do
+            ID=$(echo "$MAIN_PATH" | sed 's|public/projects/||;s|/main.js||')
+            if [ ! -f "public/data/${ID}.json" ]; then
+              echo "::error::public/data/${ID}.json 파일이 없습니다. 프로젝트 메타데이터를 추가하세요."
+              ERRORS=1
+            fi
+          done
+
+          if [ $ERRORS -ne 0 ]; then
+            echo ""
+            echo "필수 파일 3개를 모두 확인하세요:"
+            echo "  1. public/projects/{id}/main.js (캔버스 코드)"
+            echo "  2. public/data/{id}.json (프로젝트 정보)"
+            echo "  3. public/data/config.json (ID 추가)"
+            exit 1
+          fi
+
+          echo "필수 파일 검증 통과!"
