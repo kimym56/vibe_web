@@ -1,0 +1,9 @@
+{
+  "id": "kimym56",
+  "title": "mimesis",
+  "description": "한두 줄 설명",
+  "url": "https://ymkim-mimesis.vercel.app",
+  "stack": ["React", "Three.js"],
+  "author": "김용민",
+  "code": "projects/kimym56/main.js"
+}
