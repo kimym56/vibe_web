@@ -1,0 +1,9 @@
+{
+  "id": "heesu",
+  "title": "인터랙션 에디터",
+  "description": "인터랙션 에디터입니다.",
+  "url": "https://creative-coding-eight.vercel.app",
+  "stack": ["React", "PIXI.js"],
+  "author": "정희수",
+  "code": "projects/heesu/main.js"
+}
