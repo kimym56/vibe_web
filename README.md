@@ -8,28 +8,45 @@ JSON + Canvas 기반 크리에이티브 포트폴리오. 누구나 자신만의 
 
 ## Claude Code로 참여하기 (가장 빠른 방법)
 
-터미널에서 아래 내용을 그대로 따라하면 됩니다.
+### 1. Fork & 클론
+
+GitHub에서 오른쪽 위 **Fork** 버튼 클릭 → 본인 계정에 복사본 생성
 
 ```bash
-# 1. GitHub에서 이 저장소를 Fork (웹에서 Fork 버튼 클릭)
-
-# 2. Fork한 저장소 클론
 git clone https://github.com/{본인-github-id}/vibe_web.git
 cd vibe_web
 npm install
+```
 
-# 3. Claude Code 실행
+### 2. Claude Code 실행
+
+```bash
 claude
 ```
 
+### 3. 비주얼 만들기
+
 Claude Code에게 이렇게 말하세요:
 
-> **"내 ID는 {your-id}야. 캔버스에 {원하는 비주얼 설명}을 그려줘. 파일 만들고 config에 추가하고, 브랜치 만들어서 커밋 & 푸시하고 PR까지 올려줘."**
+> **"README 읽고 내 프로젝트 추가해줘. ID는 hong-dev, 캔버스에 네온 파티클이 원형으로 회전하는 비주얼 만들어줘."**
 
-예시:
-> "내 ID는 hong-dev야. 캔버스에 네온 파티클이 원형으로 회전하는 비주얼을 그려줘. 파일 만들고 config에 추가하고, 브랜치 만들어서 커밋 & 푸시하고 PR까지 올려줘."
+- ID는 본인의 GitHub 아이디 또는 원하는 영문 소문자 이름 (예: `hong-dev`, `my-project`)
+- 비주얼 설명은 자유롭게 — Canvas 2D로 그릴 수 있는 건 다 됩니다
 
-Claude Code가 알아서 파일 3개 생성 → 로컬 테스트 → 브랜치 → 커밋 → PR까지 해줍니다.
+### 4. 로컬에서 확인
+
+```bash
+npm run dev
+# → http://localhost:3000 에서 본인 셀이 나오는지 확인
+```
+
+맘에 들 때까지 Claude Code에게 수정 요청하세요.
+
+### 5. 확인 끝나면 PR
+
+다 맘에 들면 Claude Code에게:
+
+> **"브랜치 만들고 커밋 푸시해서 PR 올려줘"**
 
 ---
 
