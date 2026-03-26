@@ -1,0 +1,9 @@
+{
+  "id": "seunggyun",
+  "title": "seunggyun",
+  "description": "fish animation with p5.js",
+  "url": "https://koi-fish-animation.vercel.app",
+  "stack": ["p5.js"],
+  "author": "seunggyun",
+  "code": "projects/seunggyun/main.js"
+}
