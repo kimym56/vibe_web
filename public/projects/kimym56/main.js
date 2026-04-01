@@ -556,18 +556,41 @@ function draw(ctx, world) {
   }, 0);
   let tx = (hw - totalW) * 0.5;
   const ty = hh * 0.5;
+  const cycleFrames = 180;
+  const charDelay = 9;
+  const appearPortion = 0.2;
+  const holdPortion = 0.55;
 
   word.split("").forEach((ch, i) => {
-    const staggerPhase = f * 0.04 - i * 0.55;
-    // flip: -1..1 via sin, mapped to vertical skewY-like offset
-    const flip = Math.sin(staggerPhase);
-    const flipAbs = Math.abs(flip);
-    const scaleY = 1 - flipAbs * 0.85; // squash during flip
-    const transY = flipAbs * fontSize * 0.1; // slight vertical drift
+    const localFrame =
+      (((f - i * charDelay) % cycleFrames) + cycleFrames) % cycleFrames;
+    const t = localFrame / cycleFrames;
 
-    // Color shift during flip
-    const hue = (i * 40 + f * 1.5) % 360;
-    const bright = flip > 0 ? "#ffffff" : `hsl(${hue},90%,68%)`;
+    let alpha = 1;
+    let transY = 0;
+    let scaleY = 1;
+
+    if (t < appearPortion) {
+      const p = t / appearPortion;
+      const e = 1 - Math.pow(1 - p, 3);
+      transY = lerp(fontSize * 0.8, 0, e);
+      scaleY = lerp(0.86, 1, e);
+      alpha = e;
+    } else if (t < appearPortion + holdPortion) {
+      const p = (t - appearPortion) / holdPortion;
+      transY = Math.sin(p * Math.PI * 2 + i * 0.45) * fontSize * 0.03;
+      scaleY = 1;
+      alpha = 1;
+    } else {
+      const p =
+        (t - appearPortion - holdPortion) / (1 - appearPortion - holdPortion);
+      const e = p * p;
+      transY = lerp(0, -fontSize * 0.45, e);
+      scaleY = lerp(1, 0.95, e);
+      alpha = 1 - e;
+    }
+
+    const bright = "#f2f2f2";
 
     const w = ctx.measureText(ch).width;
 
@@ -575,7 +598,7 @@ function draw(ctx, world) {
     ctx.translate(tx + w * 0.5, ty + transY);
     ctx.scale(1, scaleY);
     ctx.fillStyle = bright;
-    ctx.globalAlpha = 0.85 + 0.15 * (1 - flipAbs);
+    ctx.globalAlpha = alpha;
     ctx.fillText(ch, -w * 0.5, 0);
     ctx.restore();
 
@@ -584,12 +607,12 @@ function draw(ctx, world) {
     ctx.arc(
       tx + w * 0.5,
       ty + fontSize * 0.62,
-      2 * (1 - flipAbs * 0.7),
+      2 * (0.35 + 0.65 * alpha),
       0,
       Math.PI * 2,
     );
     ctx.fillStyle = bright;
-    ctx.globalAlpha = 0.4 * (1 - flipAbs);
+    ctx.globalAlpha = 0.3 * alpha;
     ctx.fill();
     ctx.globalAlpha = 1;
 
