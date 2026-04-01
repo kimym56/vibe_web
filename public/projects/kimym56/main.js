@@ -389,7 +389,7 @@ function draw(ctx, world) {
   const wiperX = ((f * 1.6) % (hw * 1.4)) - hw * 0.2;
 
   // Text-block rows (revealed left of wiper)
-  const rowCount = 8;
+  const rowCount = 6;
   const rowH = hh / (rowCount + 1);
   for (let r = 0; r < rowCount; r++) {
     const ry = (r + 0.5) * rowH;
