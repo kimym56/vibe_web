@@ -444,7 +444,7 @@ function draw(ctx, world) {
 
   // Label
   ctx.fillStyle = "#ffffff";
-  ctx.font = `${Math.max(7, cellH * 0.032)}px 'SF Mono', monospace`;
+  ctx.font = `${Math.max(9, cellH * 0.035)}px 'SF Mono', monospace`;
   ctx.fillText("Wiper Typography", 10, hh - 10);
 
   ctx.restore();
@@ -521,7 +521,7 @@ function draw(ctx, world) {
 
   // Label
   ctx.fillStyle = "#000000";
-  ctx.font = `${Math.max(7, cellH * 0.032)}px 'SF Mono', monospace`;
+  ctx.font = `${Math.max(9, cellH * 0.035)}px 'SF Mono', monospace`;
   ctx.fillText("Black & White Circle", 10, hh - 10);
 
   ctx.restore();
@@ -613,7 +613,7 @@ function draw(ctx, world) {
 
   // Label
   ctx.fillStyle = "#ffffff";
-  ctx.font = `${Math.max(7, cellH * 0.032)}px 'SF Mono', monospace`;
+  ctx.font = `${Math.max(9, cellH * 0.035)}px 'SF Mono', monospace`;
   ctx.fillText("Staggered Text", 10, hh - 10);
 
   ctx.restore();
