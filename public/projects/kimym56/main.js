@@ -57,73 +57,174 @@ function draw(ctx, world) {
   ctx.rect(0, 0, hw, hh);
   ctx.clip();
 
-  // Animated curl progress
-  const curl = 0.5 + 0.5 * Math.sin(f * 0.018);
-  const cornerX = hw;
-  const cornerY = hh;
-  const peelX   = hw   - curl * hw * 0.75;
-  const peelY   = hh   - curl * hh * 0.75;
+  const qW = hw, qH = hh;
 
-  // Page surface (under-page — darker)
-  ctx.fillStyle = "#ddd7cf";
-  ctx.fillRect(0, 0, hw, hh);
-
-  // Grid lines on under-page
-  ctx.strokeStyle = "rgba(0,0,0,0.07)";
-  ctx.lineWidth = 0.5;
-  for (let gx = 0; gx < hw; gx += hw / 6) {
-    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, hh); ctx.stroke();
-  }
-  for (let gy = 0; gy < hh; gy += hh / 6) {
-    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(hw, gy); ctx.stroke();
+  // Single paper background style for both top and under-page
+  function drawPaper() {
+    ctx.fillStyle = "#faf7f4";
+    ctx.fillRect(0, 0, qW, qH);
+    ctx.strokeStyle = "rgba(0,0,0,0.05)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = 0; x < qW; x += qW/6) { ctx.moveTo(x, 0); ctx.lineTo(x, qH); }
+    for (let y = 0; y < qH; y += qH/6) { ctx.moveTo(0, y); ctx.lineTo(qW, y); }
+    ctx.stroke();
   }
 
-  // Curling page polygon (triangle folding from bottom-right corner)
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(peelX, 0);
-  ctx.lineTo(cornerX, peelY);
-  ctx.lineTo(cornerX, cornerY);
-  // diagonal fold edge
-  ctx.lineTo(peelX, cornerY);
-  ctx.lineTo(0, cornerY);
-  ctx.closePath();
-  ctx.fillStyle = "#faf7f4";
-  ctx.fill();
+  // Yoyo loop: page curls and then un-curls back to the corner
+  const tp = 0.5 - 0.5 * Math.cos(f * 0.02); 
+  const tSmooth = tp;
 
-  // Shadow along fold diagonal
-  const shadowGrad = ctx.createLinearGradient(
-    peelX, peelY, peelX + 18, peelY + 18
-  );
-  shadowGrad.addColorStop(0, "rgba(0,0,0,0.18)");
-  shadowGrad.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.beginPath();
-  ctx.moveTo(peelX, 0);
-  ctx.lineTo(cornerX, peelY);
-  ctx.lineTo(cornerX, peelY + 22);
-  ctx.lineTo(peelX, 22);
-  ctx.closePath();
-  ctx.fillStyle = shadowGrad;
-  ctx.fill();
+  const diag = Math.sqrt(qW * qW + qH * qH);
+  // Peel about 85% of the way and return
+  const maxDrag = diag * 0.85;
 
-  // Curled flap triangle
-  ctx.beginPath();
-  ctx.moveTo(peelX, 0);
-  ctx.lineTo(cornerX, 0);
-  ctx.lineTo(cornerX, peelY);
-  ctx.closePath();
-  const flap = ctx.createLinearGradient(peelX, 0, cornerX, peelY);
-  flap.addColorStop(0, "rgba(200,190,180,0.85)");
-  flap.addColorStop(1, "rgba(170,160,150,0.55)");
-  ctx.fillStyle = flap;
-  ctx.fill();
+  const dragX = qW - (qW / diag) * (tSmooth * maxDrag);
+  const dragY = qH - (qH / diag) * (tSmooth * maxDrag);
+
+  const dvx = dragX - qW, dvy = dragY - qH;
+  const dvLen = Math.sqrt(dvx * dvx + dvy * dvy);
+
+  // 1) Draw Under-page (what is revealed)
+  drawPaper();
+
+  if (dvLen >= 2) {
+    const dnx = dvx / dvLen, dny = dvy / dvLen;
+    const flx = -dny, fly = dnx;
+    const fmx = (qW + dragX) * 0.5, fmy = (qH + dragY) * 0.5;
+
+    const foldPts = [];
+    const edges = [[0,0,qW,0],[qW,0,qW,qH],[qW,qH,0,qH],[0,qH,0,0]];
+    for (const [ax,ay,bx,by] of edges) {
+      const edx = bx-ax, edy = by-ay;
+      const den = flx*edy - fly*edx;
+      if (Math.abs(den) < 1e-8) continue;
+      const s = ((ax-fmx)*edy - (ay-fmy)*edx) / den;
+      const u = ((ax-fmx)*fly - (ay-fmy)*flx) / den;
+      if (u > -0.001 && u < 1.001)
+        foldPts.push({ x: fmx + s*flx, y: fmy + s*fly });
+    }
+    const uniq = [];
+    for (const pt of foldPts)
+      if (!uniq.some(q => Math.abs(q.x-pt.x)<0.5 && Math.abs(q.y-pt.y)<0.5)) uniq.push(pt);
+
+    if (uniq.length >= 2) {
+      uniq.sort((a,b)=>(a.x-fmx)*flx+(a.y-fmy)*fly - ((b.x-fmx)*flx+(b.y-fmy)*fly));
+      const fp1 = uniq[0], fp2 = uniq[1];
+
+      function clipToPeelSide(positive) {
+        const corners = [{x:0,y:0},{x:qW,y:0},{x:qW,y:qH},{x:0,y:qH}];
+        const out = [];
+        function inside(pt) {
+          const d = (pt.x-fmx)*dnx + (pt.y-fmy)*dny;
+          return positive ? d >= 0 : d <= 0;
+        }
+        function intersect(a, b) {
+          const dx=b.x-a.x, dy=b.y-a.y;
+          const num = (fmx-a.x)*dnx + (fmy-a.y)*dny;
+          const den = dx*dnx + dy*dny;
+          if (Math.abs(den)<1e-8) return a;
+          const t2 = num/den;
+          return { x: a.x+t2*dx, y: a.y+t2*dy };
+        }
+        for (let i=0; i<corners.length; i++) {
+          const curr = corners[i], prev = corners[(i-1+4)%4];
+          if (inside(curr)) { if (!inside(prev)) out.push(intersect(prev,curr)); out.push(curr); }
+          else if (inside(prev)) out.push(intersect(prev,curr));
+        }
+        return out;
+      }
+
+      // Soft cast shadow on under-page
+      ctx.save();
+      const spUnder = clipToPeelSide(true);
+      if (spUnder.length >= 2) {
+        ctx.beginPath();
+        ctx.moveTo(spUnder[0].x, spUnder[0].y);
+        for (let i=1;i<spUnder.length;i++) ctx.lineTo(spUnder[i].x, spUnder[i].y);
+        ctx.closePath();
+        const sg = ctx.createLinearGradient(fmx, fmy, qW, qH);
+        sg.addColorStop(0,   `rgba(0,0,0,${0.35 * Math.min(1, tSmooth*2)})`);
+        sg.addColorStop(0.4, `rgba(0,0,0,${0.15 * Math.min(1, tSmooth*2)})`);
+        sg.addColorStop(1,   "rgba(0,0,0,0)");
+        ctx.fillStyle = sg;
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Static front page (non-peeled)
+      ctx.save();
+      const spStatic = clipToPeelSide(false);
+      if (spStatic.length >= 2) {
+        ctx.beginPath();
+        ctx.moveTo(spStatic[0].x, spStatic[0].y);
+        for (let i=1;i<spStatic.length;i++) ctx.lineTo(spStatic[i].x, spStatic[i].y);
+        ctx.closePath();
+        ctx.clip(); // Mask the drawing to just the unpeeled area
+        
+        drawPaper();
+        
+        // Edge shadow where page bends
+        const eg = ctx.createLinearGradient(fp1.x, fp1.y, fp1.x - dnx*22, fp1.y - dny*22);
+        eg.addColorStop(0, `rgba(0,0,0,${0.15 * Math.min(1, tSmooth*2)})`);
+        eg.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = eg;
+        ctx.fillRect(0, 0, qW, qH);
+      }
+      ctx.restore();
+
+      // Back face of curling page (cylindrical lighting)
+      ctx.save();
+      const spBack = clipToPeelSide(true);
+      if (spBack.length >= 2) {
+        ctx.beginPath();
+        ctx.moveTo(spBack[0].x, spBack[0].y);
+        for (let i=1;i<spBack.length;i++) ctx.lineTo(spBack[i].x, spBack[i].y);
+        ctx.closePath();
+        const cylGrad = ctx.createLinearGradient(
+          fmx, fmy,
+          fmx + dnx * dvLen * 0.9, fmy + dny * dvLen * 0.9
+        );
+        cylGrad.addColorStop(0.00, "rgba(248,243,238,0.97)"); 
+        cylGrad.addColorStop(0.08, "rgba(195,186,176,0.97)"); 
+        cylGrad.addColorStop(0.35, "rgba(162,154,144,0.95)"); 
+        cylGrad.addColorStop(0.65, "rgba(178,170,161,0.90)"); 
+        cylGrad.addColorStop(1.00, "rgba(205,197,188,0.82)"); 
+        ctx.fillStyle = cylGrad;
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Crease glow
+      ctx.save();
+      ctx.lineCap = "round";
+      const alphaPulse = Math.min(1, tSmooth*3); // fully solid after just a little movement
+      ctx.beginPath(); ctx.moveTo(fp1.x, fp1.y); ctx.lineTo(fp2.x, fp2.y);
+      ctx.strokeStyle = `rgba(255,255,255,${0.28 * alphaPulse})`;
+      ctx.lineWidth = 18; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(fp1.x, fp1.y); ctx.lineTo(fp2.x, fp2.y);
+      ctx.strokeStyle = `rgba(255,255,255,${0.50 * alphaPulse})`;
+      ctx.lineWidth = 7; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(fp1.x, fp1.y); ctx.lineTo(fp2.x, fp2.y);
+      ctx.strokeStyle = `rgba(255,255,255,${0.88 * alphaPulse})`;
+      ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.restore();
+    } else {
+      // If the page is peeled entirely off the boundary, the underpage covers everything.
+      // And since drawPaper() is already the underpage, we don't need to do anything else.
+    }
+  } else {
+    drawPaper();
+  }
 
   // Label
-  ctx.fillStyle = "rgba(0,0,0,0.22)";
-  ctx.font = `${Math.max(7, cellH * 0.032)}px 'SF Mono', monospace`;
-  ctx.fillText("iOS Page Curl", 10, hh - 10);
-
+  ctx.fillStyle = "rgba(0,0,0,0.30)";
+  ctx.font = `600 ${Math.max(9, cellH * 0.035)}px 'SF Pro', sans-serif`;
+  ctx.fillText("iOS Page Curl", 12, qH - 12);
   ctx.restore();
+
+
+
 
   // ══════════════════════════════════════════════════════════════════════════
   // Q2 — TOP RIGHT: Wiper Typography
