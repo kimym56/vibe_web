@@ -1,9 +1,9 @@
 {
   "id": "kimym56",
-  "title": "mimesis",
-  "description": "한두 줄 설명",
+  "title": "Mimesis",
+  "description": "인터랙티브 UI와 크리에이티브한 작업들을 재현하고, 이를 다양한 웹 기술과 재해석으로 확장한 프로젝트입니다.",
   "url": "https://ymkim-mimesis.vercel.app",
-  "stack": ["React", "Three.js"],
+  "stack": ["React", "Vite", "Three.js", "R3F", "Framer Motion"],
   "author": "김용민",
   "code": "projects/kimym56/main.js"
 }
